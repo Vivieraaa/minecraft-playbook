@@ -17,7 +17,7 @@ It's my first time writing a playbook, so I'm learning as I go. This will be my 
 1. Setup forge server files with mods and configs.
 2. Add desired destination server to inventory file.
 3. Run ansible playbook against server.
-4. To update mods and configs, delete world file from file source files and then run the playbook again.
+4. To update mods and configs, delete world folder from source files and then run the playbook again.
 
 ### Possible Changes/Updats
 
