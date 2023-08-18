@@ -1,0 +1,11 @@
+---
+- name: start minecraft service
+  systemd:
+    name: minecraft.service
+    state: restarted
+    enabled: true
+    daemon_reload: true
+
+- name: systemd reload
+  systemd:
+    daemon_reload: true

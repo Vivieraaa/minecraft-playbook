@@ -1,0 +1,57 @@
+---
+- name: Have "mcserver" folder present, permissions.
+  file:
+    path: /opt/mcserver
+    state: directory
+    owner: mc
+    group: mc
+    mode: "0775"
+
+- name: Have "logs" folder present, permissions.
+  file:
+    path: /opt/mcserver/logs
+    state: directory
+    owner: mc
+    group: mc
+    mode: "0775"
+
+- name: Have "backupslongterm" folder present, permissions.
+  file:
+    path: /opt/mcserver/backupslongterm
+    state: directory
+    owner: mc
+    group: mc
+    mode: "0775"
+
+- name: Have "fullbackupstaging" folder present, permissions.
+  file:
+    path: /opt/mcserver/fullbackupstaging
+    state: directory
+    owner: mc
+    group: mc
+    mode: "0775"
+
+- name: Have "rdiffbackups" folder present, permissions.
+  file:
+    path: /opt/mcserver/rdiffbackups
+    state: directory
+    owner: mc
+    group: mc
+    mode: "0775"
+
+- name: Copy Server Files.
+  copy:
+    src: ~/mcserver/foxxolay
+    dest: /opt/mcserver/foxxolay
+    owner: mc
+    group: mc
+    mode: "0775"
+  notify: restart mcserver
+
+- name: Copy Command File.
+  copy:
+    src: /mcserver/mccmd
+    dest: /opt/mcserver/mccmd
+    owner: mc
+    group: mc
+    mode: a+x

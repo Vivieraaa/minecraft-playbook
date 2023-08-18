@@ -1,0 +1,16 @@
+---
+- name: Open port 25565 for minecraft.
+  ufw:
+    rule: allow
+    port: "25565"
+
+- name: Have Group "mc".
+  group:
+    name: mc
+    state: present
+
+- name: Have User "mc".
+  user:
+    name: mc
+    state: present
+    group: mc

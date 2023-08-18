@@ -31,7 +31,7 @@ notify_restart() {
 #Log time restart is sent, and restart
 restart_server() {
     server_run "stop"
-    sleep 120
+    sleep 60
     echo "~~~ Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
     systemctl restart minecraft.service
 }

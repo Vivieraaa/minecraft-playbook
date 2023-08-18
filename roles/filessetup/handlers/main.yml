@@ -1,0 +1,3 @@
+---
+- name: restart mcserver
+  command: /opt/mcserver/mccmd fast-restart
