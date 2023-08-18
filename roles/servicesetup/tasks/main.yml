@@ -1,13 +1,13 @@
 ---
 - name: Copy "minecraft.service" to etc/systemd/system
   copy:
-    src: /mcserver/minecraft.service
+    src: "{{ playbook_dir }}/mcserver/minecraft.service"
     dest: /etc/systemd/system
   notify: start minecraft.service
 
 - name: Copy "minecraftfailure.service" to etc/systemd/system
   copy:
-    src: /mcserver/minecraftfailure.service
+    src: "{{ playbook_dir }}/mcserver/minecraftfailure.service"
     dest: /etc/systemd/system
   notify: reload systemd
 

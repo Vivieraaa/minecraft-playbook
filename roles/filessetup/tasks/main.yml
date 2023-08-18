@@ -41,7 +41,7 @@
 
 - name: Copy Server Files.
   copy:
-    src: ~/mcserver/foxxolay
+    src: "{{ playbook_dir }}/mcserver/foxxolay"
     dest: /opt/mcserver/foxxolay
     owner: mc
     group: mc
@@ -50,7 +50,7 @@
 
 - name: Copy Command File.
   copy:
-    src: /mcserver/mccmd
+    src: "{{ playbook_dir }}/mcserver/mccmd"
     dest: /opt/mcserver/mccmd
     owner: mc
     group: mc
