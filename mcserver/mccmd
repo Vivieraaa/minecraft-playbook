@@ -1,0 +1,154 @@
+#!/bin/bash -e
+
+
+#Check if the port is closed and the service is running, if so, restart the service
+port_check_restart() { 
+    nc -z -v arca.local 25565 || { systemctl is-active --quiet minecraft.service && restart_serverctl; }
+}
+
+#Get the latests world backup and move it to the backupslongterm folder, run by cron once a week
+clean_backups() {
+    cd /opt/mcserver/fullbackupstaging
+    mv "$(ls -t | tail -n 1)" /opt/mcserver/backupslongterm
+    rm ./*
+}
+
+#Run a command in the server's screen session
+server_run()  {
+    sudo -u arcadia screen -S Minecraft -p 0 -X stuff "\n\n$@\n"
+}
+
+#Notify server of restart in 5 minutes
+notify_restart() {
+    server_run "say §L§EServer Restart in §N5 Minutes"
+    sleep 4m
+    server_run "say §L§CServer Restart in §N1 Minute"
+    sleep 1m
+    server_run "say §L§4Restarting"
+    sleep 1s
+}
+
+#Log time restart is sent, and restart
+restart_server() {
+    server_run "stop"
+    sleep 120
+    echo "~~~ Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+    systemctl restart minecraft.service
+}
+force_restart_server() {
+    echo "~~~ Force Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+    systemctl restart minecraft.service
+}
+
+#Log stop time and stop server
+stop_serverctl() {
+    server_run "stop"
+    sleep 120
+    echo "~~~ Server Stop Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+    systemctl stop minecraft.service
+}
+
+start_serverctl() {
+    echo "~~~ Server Start Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+    systemctl start minecraft.service
+}
+
+restart_serverctl() {
+    echo '~~~ Server Restart Sent: $(date) ~~~' >> /opt/mcserver/logs/startlogs.txt
+    WEBHOOK_URL="https://discord.com/api/webhooks/1078051322693161051/ep5pWQ-uNDKnp90omG5JhsjkYud9fk_oFUwNjDF-94UnbOgZCCy4qySnuWQSAlHtWhUK"
+    curl \
+      -H "Content-Type: application/json" \
+      -d '{"embeds": [ { "title": "Server Restart", "description": "Minecraft server has restarted.", "color": 16711761, "fields": [ { "name": "Restart Time", "value": "<t:'"$(date +%s)"':F>", "inline": true}, { "name": "Time of Restart", "value": "<t:'"$(date +%s)"':R>", "inline": true}]}]}' \
+      $WEBHOOK_URL
+    systemctl restart minecraft.service
+}
+
+#Starts the server in a detached screen
+start_screen() {
+    screen -dmS Minecraft /usr/bin/java -Xms12G -Xmx12G -XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200 -XX:+UnlockExperimentalVMOptions -XX:+DisableExplicitGC -XX:+AlwaysPreTouch -XX:G1NewSizePercent=30 -XX:G1MaxNewSizePercent=40 -XX:G1HeapRegionSize=8M -XX:G1ReservePercent=20 -XX:G1HeapWastePercent=5 -XX:G1MixedGCCountTarget=4 -XX:InitiatingHeapOccupancyPercent=15 -XX:G1MixedGCLiveThresholdPercent=90 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:SurvivorRatio=32 -XX:+PerfDisableSharedMem -XX:MaxTenuringThreshold=1 -Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true -jar /opt/mcserver/arcadia/fabric-server-mc.1.19.2-loader.0.14.14-launcher.0.11.1.jar --nogui
+}
+
+#Log the sever's start time
+log_start() {
+    date >> /opt/mcserver/logs/startlogs.txt
+}
+
+#Server failure Command, logs date, sends discord webhook
+start_failure() {
+    echo '^^^ Minecraft Service Entered Failed State ^^^' >> /opt/mcserver/logs/startlogs.txt
+
+    WEBHOOK_URL="https://discord.com/api/webhooks/1078051322693161051/ep5pWQ-uNDKnp90omG5JhsjkYud9fk_oFUwNjDF-94UnbOgZCCy4qySnuWQSAlHtWhUK"
+    curl \
+      -H "Content-Type: application/json" \
+      -d '{"embeds": [ { "title": "Server Failure", "description": "Minecraft server has entered a failed state.", "color": 16711761, "fields": [ { "name": "Failure Time", "value": "<t:'"$(date +%s)"':F>", "inline": true}, { "name": "Time of Failure", "value": "<t:'"$(date +%s)"':R>", "inline": true}]}]}' \
+      $WEBHOOK_URL
+}
+
+#Basic Backup
+copy_backup() {
+    rm -rf /tmp/backup
+    cp -r /opt/mcserver/foxxolay/world /tmp/backup
+}
+#Used with copy backup
+compress_backup() {
+    tar -I 'xz -9 -T0' -cf /opt/mcserver/fullbackupstaging/"$(date)".tar.xz /tmp/backup
+    rm -rf /tmp/backup
+}
+
+#rdiff backup world to rdiffbackups world folder
+r_backup() {
+    rdiff-backup --print-statistics /opt/mcserver/foxxolay/world /opt/mcserver/rdiffbackups/world
+}
+r_clean() {
+    rdiff-backup --remove-older-than 1W /opt/mcserver/rdiffbackups/world
+}
+
+main() {
+    case $1 in
+    port-check-restart) 
+        port_check_restart
+        ;;
+    run) 
+        shift
+        server_run "$@"
+        ;;
+    clean-backups)
+        clean_backups
+        ;;
+    slow-restart)
+        notify_restart
+        restart_server
+        ;;
+    fast-restart)
+        restart_server
+        ;;
+    force-restart)
+        force_restart_server
+        ;;
+    start-server)
+        log_start
+        start_screen
+        ;;
+    start-failure)
+        start_failure
+        ;;
+    backup-restart)
+        notify_restart
+        stop_serverctl
+        sleep 30
+        copy_backup
+        start_serverctl
+        compress_backup
+        ;;
+    running-backup)
+        server_run "save-off"
+        server_run "save-all"
+        sleep 20
+        r_backup
+        server_run "save-on"
+        r_clean
+        ;;
+    esac
+}
+
+main "$@"

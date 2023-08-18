@@ -1,0 +1,19 @@
+[Unit]
+Description=minecraft
+StartLimitIntervalSec=600
+StartLimitBurst=8
+OnFailure=minecraftfailure.service
+
+[Service]
+Type=forking
+ExecStart=/bin/bash /opt/mcserver/mccmd start-server
+ExecStopPost=env
+User=mc
+Group=mc
+WorkingDirectory=/opt/mcserver/foxxolay
+Restart=always
+RestartSec=5
+SuccessExitStatus=1
+
+[Install]
+WantedBy=multi-user.target

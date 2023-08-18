@@ -1,0 +1,6 @@
+[Unit]
+Description=minecraftfailure
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mcserver/mccmd start-failure > /opt/mcserver/logs/systemlogs.txt 2>&1
