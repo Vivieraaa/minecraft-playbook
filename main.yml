@@ -58,7 +58,7 @@
         state: present
         group: mc
 
-    - name: "mcserver" folder present, permissions.
+    - name: Have "mcserver" folder present, permissions.
       file:
         path: /opt/mcserver
         state: directory
@@ -66,7 +66,7 @@
         group: mc
         mode: "0775"
 
-    - name: "logs" folder present, permissions.
+    - name: Have "logs" folder present, permissions.
       file:
         path: /opt/mcserver/logs
         state: directory
@@ -74,7 +74,7 @@
         group: mc
         mode: "0775"
 
-    - name: "backupslongterm" folder present, permissions.
+    - name: Have "backupslongterm" folder present, permissions.
       file:
         path: /opt/mcserver/backupslongterm
         state: directory
@@ -82,7 +82,7 @@
         group: mc
         mode: "0775"
 
-    - name: "fullbackupstaging" folder present, permissions.
+    - name: Have "fullbackupstaging" folder present, permissions.
       file:
         path: /opt/mcserver/fullbackupstaging
         state: directory
@@ -90,7 +90,7 @@
         group: mc
         mode: "0775"
 
-    - name: "rdiffbackups" folder present, permissions.
+    - name: Have "rdiffbackups" folder present, permissions.
       file:
         path: /opt/mcserver/rdiffbackups
         state: directory
