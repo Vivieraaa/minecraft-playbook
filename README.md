@@ -1,7 +1,26 @@
 # Minecraft 1.20.1 Server Playbook
 
-A simple playbook to setup a minecraft server.
+**What is?**
+It's my first time writing a playbook, so I'm learning as I go. This will be my attempt at translating an exisitng minecraft server into a playbook. 🙏
 
-## What is?
+## How to use.
 
-It's my first time writing a playbook, so I'm learning as I go. May not be entirely functional or coherent; but hopefully will improve as time goes on. Currently have a maching set up running a minecraft server on Ubuntu server, so this will be my attempt at translating that into a playbook. 🙏
+**Needed**
+
+- Ubuntu Server 22.04.3 LTS
+- Forge 1.20.1-47.1.0 for Minecraft 1.20.1 server files in /mcserver/foxxolay
+- Ansible
+
+**Steps**
+
+1. Setup forge server files with mods and configs.
+2. Add desired destination server to inventory file.
+3. Run ansible playbook against server.
+4. To update mods and configs, delete world file from file source files and then run the playbook again.
+
+### Possible Changes/Updats
+
+- add variables
+- reorganize for easier setup
+- figure out mod and config updating easier
+- possible for other mc server versions as well
