@@ -1,3 +1,7 @@
 ---
 - name: restart mcserver
-  command: /opt/mcserver/mccmd fast-restart
+  systemd:
+    name: minecraft.service
+    state: restarted
+    enabled: true
+    daemon_reload: true

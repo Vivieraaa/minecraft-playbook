@@ -5,7 +5,7 @@
     state: directory
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
 
 - name: Have "logs" folder present, permissions.
   file:
@@ -13,7 +13,7 @@
     state: directory
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
 
 - name: Have "backupslongterm" folder present, permissions.
   file:
@@ -21,7 +21,7 @@
     state: directory
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
 
 - name: Have "fullbackupstaging" folder present, permissions.
   file:
@@ -29,7 +29,7 @@
     state: directory
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
 
 - name: Have "rdiffbackups" folder present, permissions.
   file:
@@ -37,7 +37,7 @@
     state: directory
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
 
 - name: Copy Server Files.
   copy:
@@ -45,7 +45,7 @@
     dest: /opt/mcserver/
     owner: mc
     group: mc
-    mode: "0775"
+    mode: "0777"
   notify: restart mcserver
 
 - name: Copy Command File.
