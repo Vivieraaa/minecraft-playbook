@@ -5,6 +5,15 @@
 port_check_restart() { 
     nc -z -v "192.168.1.217" 25565 || { systemctl is-active --quiet minecraft.service && restart_serverctl; }
 }
+restart_serverctl() {
+    echo '~~~ Server Restart Sent: $(date) ~~~' >> /opt/mcserver/logs/startlogs.txt
+    WEBHOOK_URL="https://discord.com/api/webhooks/1078051322693161051/ep5pWQ-uNDKnp90omG5JhsjkYud9fk_oFUwNjDF-94UnbOgZCCy4qySnuWQSAlHtWhUK"
+    curl \
+      -H "Content-Type: application/json" \
+      -d '{"embeds": [ { "title": "Server Restart", "description": "Minecraft server has restarted due to port closure.", "color": 16711761, "fields": [ { "name": "Restart Time", "value": "<t:'"$(date +%s)"':F>", "inline": true}, { "name": "Time of Restart", "value": "<t:'"$(date +%s)"':R>", "inline": true}]}]}' \
+      $WEBHOOK_URL
+    systemctl restart minecraft.service
+}
 
 #Get the latests world backup and move it to the backupslongterm folder, run by cron once a week
 clean_backups() {
@@ -15,7 +24,14 @@ clean_backups() {
 
 #Run a command in the server's screen session
 server_run()  {
-    sudo -u mc screen -S Minecraft -p 0 -X stuff "\n\n$@\n"
+    run_as_mc screen -S Minecraft -p 0 -X stuff "\n\n$@\n"
+}
+run_as_mc() {
+    if [[ "$(id -un)" != "mc" ]]; then
+        sudo -u mc "$@"
+    else
+        "$@"
+    fi
 }
 
 #Notify server of restart in 5 minutes
@@ -28,49 +44,42 @@ notify_restart() {
     sleep 1s
 }
 
-#Log time restart is sent, and restart
-restart_server() {
-    server_run "stop"
-    sleep 30
-    echo "~~~ Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+#restart service
+restart_server_service() {
     systemctl restart minecraft.service
 }
-force_restart_server() {
-    echo "~~~ Force Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
-    systemctl restart minecraft.service
-}
-
-#Log stop time and stop server
-stop_serverctl() {
-    server_run "stop"
-    sleep 60
-    echo "~~~ Server Stop Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+stop_server_service() {
     systemctl stop minecraft.service
 }
-
-start_serverctl() {
-    echo "~~~ Server Start Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+start_server_service() {
     systemctl start minecraft.service
-}
-
-restart_serverctl() {
-    echo '~~~ Server Restart Sent: $(date) ~~~' >> /opt/mcserver/logs/startlogs.txt
-    WEBHOOK_URL="https://discord.com/api/webhooks/1078051322693161051/ep5pWQ-uNDKnp90omG5JhsjkYud9fk_oFUwNjDF-94UnbOgZCCy4qySnuWQSAlHtWhUK"
-    curl \
-      -H "Content-Type: application/json" \
-      -d '{"embeds": [ { "title": "Server Restart", "description": "Minecraft server has restarted.", "color": 16711761, "fields": [ { "name": "Restart Time", "value": "<t:'"$(date +%s)"':F>", "inline": true}, { "name": "Time of Restart", "value": "<t:'"$(date +%s)"':R>", "inline": true}]}]}' \
-      $WEBHOOK_URL
-    systemctl restart minecraft.service
 }
 
 #Starts the server in a detached screen
 start_screen() {
-    screen -dmS Minecraft /opt/mcserver/foxxolay/run.sh
+    run_as_mc screen -dmS Minecraft /opt/mcserver/foxxolay/run.sh
+}
+#Sends minecraft "stop" and waits for screen session to close, if not closed after 5 minutes, exit
+system_stop_screen() {
+    server_run "stop"
+    for i in {0..300};
+    do
+        sleep 1
+        if ! run_as_mc bash -c 'screen -list | grep -q "Minecraft"'; then
+            exit 0
+        fi
+    done
 }
 
-#Log the sever's start time
+#Log times
 log_start() {
     date >> /opt/mcserver/logs/startlogs.txt
+}
+log_stop() {
+    echo "~~~ Server Stop Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
+}
+log_restart() {
+    echo "~~~ Force Server Restart Sent: $(date) ~~~" >> /opt/mcserver/logs/startlogs.txt
 }
 
 #Server failure Command, logs date, sends discord webhook
@@ -117,27 +126,37 @@ main() {
         ;;
     slow-restart)
         notify_restart
-        restart_server
+        log_restart
+        restart_server_service
         ;;
     fast-restart)
-        restart_server
-        ;;
-    force-restart)
-        force_restart_server
+        log_restart
+        restart_server_service
         ;;
     start-server)
         log_start
+        start_server_service
+        ;;
+    stop-server)
+        log_stop
+        stop_server_service
+        ;;
+    system-start-server)
+        log_start
         start_screen
         ;;
-    start-failure)
+    system-stop-server)
+        log_stop
+        system_stop_screen
+        ;;
+    system-start-failure)
         start_failure
         ;;
     backup-restart)
         notify_restart
-        stop_serverctl
-        sleep 20
+        stop_server_service
         copy_backup
-        start_serverctl
+        start_server_service
         compress_backup
         ;;
     running-backup)

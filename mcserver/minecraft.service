@@ -6,7 +6,8 @@ OnFailure=minecraftfailure.service
 
 [Service]
 Type=forking
-ExecStart=/bin/bash /opt/mcserver/mccmd start-server
+ExecStart=/bin/bash /opt/mcserver/mccmd system-start-server
+ExecStop=/bin/bash /opt/mcserver/mccmd system-stop-server
 ExecStopPost=env
 User=mc
 Group=mc

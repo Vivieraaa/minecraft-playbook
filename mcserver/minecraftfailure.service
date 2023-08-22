@@ -3,4 +3,4 @@ Description=minecraftfailure
 
 [Service]
 Type=oneshot
-ExecStart=/opt/mcserver/mccmd start-failure > /opt/mcserver/logs/systemlogs.txt 2>&1
+ExecStart=/opt/mcserver/mccmd system-start-failure > /opt/mcserver/logs/systemlogs.txt 2>&1
