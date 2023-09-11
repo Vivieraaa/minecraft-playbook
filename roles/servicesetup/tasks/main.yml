@@ -21,7 +21,7 @@
 - name: Cron entry to check if server is available.
   cron:
     name: "port-check-restart"
-    minute: "*/10"
+    minute: "*/30"
     job: "bash /opt/mcserver/mccmd port-check-restart"
 
 - name: Cron entry to clean backups and move to longterm.

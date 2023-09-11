@@ -156,8 +156,8 @@ main() {
         notify_restart
         stop_server_service
         copy_backup
-        start_server_service
         compress_backup
+        start_server_service
         ;;
     running-backup)
         server_run "save-off"
