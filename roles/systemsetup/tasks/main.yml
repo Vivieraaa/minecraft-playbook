@@ -4,6 +4,12 @@
     rule: allow
     port: "25565"
 
+- name: Open port 24454 for simple voice chat.
+  ufw:
+    rule: allow
+    port: "24454"
+    proto: "udp"
+
 - name: Have Group "mc".
   group:
     name: mc
